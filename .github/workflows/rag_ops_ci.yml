@@ -1,0 +1,73 @@
+name: RAG Ops Quality Gate
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+env:
+  # Load env vars that are not secrets but required for config
+  PROJECT_NAME: "RAG Ops System CI"
+  API_V1_STR: "/api/v1"
+  ENVIRONMENT: "ci_test"
+  # Milvus/MLflow URI for CI environment (localhost works because docker runs on the host in GHA)
+  MILVUS_URI: "http://localhost:19530"
+  MLFLOW_TRACKING_URI: "http://localhost:5000"
+  MLFLOW_EXPERIMENT_NAME: "ci_evaluation"
+  # Secrets
+  OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+
+jobs:
+  evaluation-gate:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@v1
+      with:
+        version: "latest"
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Install Dependencies
+      run: |
+        uv venv
+        # Activate venv for subsequent commands
+        source .venv/bin/activate
+        uv pip install -r pyproject.toml
+        # Ensure we have the test dependencies
+        uv pip install pytest httpx ragas datasets
+
+    - name: Spin up Infrastructure (Docker Compose)
+      run: |
+        # We use the existing compose file but need to ensure it's compatible with CI
+        # The standard docker-compose is available on GitHub runners
+        docker compose up -d
+        
+        # Wait for Milvus and MLflow to be healthy
+        echo "Waiting for services to start..."
+        sleep 30
+        docker ps -a
+
+    - name: Ingest Knowledge Base
+      run: |
+        source .venv/bin/activate
+        # Run ingestion to seed the fresh CI database
+        python -m src.ingestion.pipeline
+
+    - name: Run Quality Evaluation
+      run: |
+        source .venv/bin/activate
+        # This script exits with code 1 if metrics < threshold, failing the pipeline
+        python -m src.eval.evaluate
+
+    - name: Teardown
+      if: always()
+      run: docker compose down

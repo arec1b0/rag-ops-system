@@ -1,0 +1,27 @@
+[project]
+name = "rag-ops-system"
+version = "0.1.0"
+description = "Production Agentic RAG system with monitoring and A/B testing"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.109.0",
+    "uvicorn>=0.27.0",
+    "langgraph>=0.0.10",
+    "langchain>=0.1.0",
+    "langchain-openai>=0.0.5",
+    "langchain-community>=0.0.10",
+    "pydantic-settings>=2.1.0",
+    "python-dotenv>=1.0.0",
+    "httpx>=0.26.0"
+]
+
+[tool.uv]
+dev-dependencies = [
+    "pytest>=8.0.0",
+    "httpx>=0.26.0"
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
