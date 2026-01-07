@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rag-backend
+  namespace: rag-ops-prod
+  labels:
+    app: rag-backend
+spec:
+  replicas: 2 # High Availability (at least 2 pods)
+  selector:
+    matchLabels:
+      app: rag-backend
+  template:
+    metadata:
+      labels:
+        app: rag-backend
+    spec:
+      containers:
+      - name: api
+        image: rag-ops-system:latest # You would push this to a registry (DockerHub/ECR)
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8000
+        envFrom:
+        - configMapRef:
+            name: rag-app-config
+        - secretRef:
+            name: rag-app-secrets
+        # K8s will kill the pod if this fails
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 10
+          periodSeconds: 15
+        # K8s won't send traffic until this passes
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        resources:
+          requests:
+            cpu: "250m"
+            memory: "512Mi"
+          limits:
+            cpu: "1000m"
+            memory: "1Gi"

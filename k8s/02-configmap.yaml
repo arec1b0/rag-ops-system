@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: rag-app-config
+  namespace: rag-ops-prod
+data:
+  PROJECT_NAME: "RAG Ops System Prod"
+  ENVIRONMENT: "production"
+  MILVUS_URI: "http://milvus-standalone.rag-ops-prod.svc.cluster.local:19530" # Service discovery URL
+  MLFLOW_TRACKING_URI: "http://mlflow.rag-ops-prod.svc.cluster.local:5000"
+  MLFLOW_EXPERIMENT_NAME: "production_agent_v1"
