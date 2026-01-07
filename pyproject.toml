@@ -13,7 +13,15 @@ dependencies = [
     "langchain-community>=0.0.10",
     "pydantic-settings>=2.1.0",
     "python-dotenv>=1.0.0",
-    "httpx>=0.26.0"
+    "httpx>=0.26.0",
+    # --- Добавленные зависимости ---
+    "pymilvus>=2.3.0",      # Vector DB Client
+    "mlflow>=2.10.0",       # Monitoring
+    "psycopg2-binary",      # DB Driver
+    "boto3",                # S3 Client for MLflow
+    "ragas",                # Evaluation
+    "datasets",             # HuggingFace Datasets
+    "pandas"                # Data analysis
 ]
 
 [tool.uv]
